@@ -22,6 +22,15 @@ const SYSTEM_PROMPT = [
   "Use relative paths for project files.",
 ].join(" ");
 
+type Mode = "build" | "plan";
+
+function promptForMode(mode: Mode): string {
+  const instructions = mode === "plan"
+    ? "Plan mode: inspect the project and propose steps. Do not change files or run shell commands."
+    : "Build mode: carry out requested changes, using edit_file for file updates.";
+  return `${SYSTEM_PROMPT} ${instructions}`;
+}
+
 function createTools(): ToolRegistry {
   const tools = new ToolRegistry();
   for (const tool of [bashTool, readFileTool, globTool, grepTool, editFileTool, webFetchTool]) tools.register(tool);
@@ -41,11 +50,13 @@ function showToolInput(argumentsText: string): string {
 /** Start the terminal application with a provider supplied by the caller. */
 export async function runApp(provider: AIProvider): Promise<void> {
   const permissions = await loadPermissions();
-  const messages: Message[] = [{ role: "system", content: SYSTEM_PROMPT }];
+  let mode: Mode = "build";
+  const messages: Message[] = [{ role: "system", content: promptForMode(mode) }];
   const tools = createTools();
   const terminal = createInterface({ input, output });
   const runner = new AgentRunner(provider, tools, {
     async authorizeToolCall(name, argumentsText) {
+      if (mode === "plan" && (name === "edit_file" || name === "bash")) return false;
       const permission = permissions[name] ?? "deny";
       if (permission === "deny") return false;
       if (name === "edit_file") {
@@ -92,8 +103,16 @@ export async function runApp(provider: AIProvider): Promise<void> {
     const question = (await terminal.question(`\n${style.label("User")} ${style.prompt("> ")}`)).trim();
     if (!question) continue;
 
+    if (question === "/plan" || question === "/build") {
+      mode = question === "/plan" ? "plan" : "build";
+      messages[0] = { role: "system", content: promptForMode(mode) };
+      console.log(`${style.label("MODE")} ${mode === "plan" ? "Plan (read-only)" : "Build"}`);
+      continue;
+    }
+
     try {
-      const answer = await runner.run(messages, question);
+      const allowedTools = mode === "plan" ? ["read", "glob", "grep", "webfetch"] : undefined;
+      const answer = await runner.run(messages, question, allowedTools);
       console.log(`\n${style.label("Agent")}\n${answer}`);
     } catch (error) {
       console.error(`\n${style.error("ERROR")} ${error instanceof Error ? error.message : String(error)}`);

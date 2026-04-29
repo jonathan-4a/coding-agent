@@ -40,3 +40,5 @@ Permissions default to allowing `read`, `glob`, `grep`, and `webfetch`, while as
 ```
 
 Each tool accepts `allow`, `ask`, or `deny`. Unlisted tools use the defaults above; unknown tools are denied.
+
+Enter `/plan` to inspect the project and receive a proposed plan without shell or file-edit tools. Enter `/build` to return to normal work.

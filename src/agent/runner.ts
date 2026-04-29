@@ -28,7 +28,7 @@ export class AgentRunner {
     private readonly events: AgentEvents = {},
   ) {}
 
-  async run(messages: Message[], question: string): Promise<string> {
+  async run(messages: Message[], question: string, allowedTools?: readonly string[]): Promise<string> {
     messages.push({ role: "user", content: question });
 
     for (let turn = 0; turn < MAX_TURNS; turn++) {
@@ -36,7 +36,7 @@ export class AgentRunner {
       // for one or more local tools.
       const reply = await this.provider.complete({
         messages,
-        tools: this.tools.definitions(),
+        tools: this.tools.definitions().filter((tool) => !allowedTools || allowedTools.includes(tool.name)),
         signal: new AbortController().signal,
       });
       messages.push({
