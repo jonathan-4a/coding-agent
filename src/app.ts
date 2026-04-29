@@ -6,6 +6,7 @@ import { AgentRunner } from "./agent/runner";
 import { bashTool } from "./tools/bash";
 import { authorizeFileEdit, discardFileEdit, editFileTool, previewFileEdit } from "./tools/edit";
 import { readFileTool } from "./tools/files";
+import { globTool, grepTool } from "./tools/search";
 import { ToolRegistry } from "./tools/tool";
 import { webFetchTool } from "./tools/webfetch";
 import { colorizeDiff, terminalStyle as style } from "./terminal/style";
@@ -14,6 +15,7 @@ const SYSTEM_PROMPT = [
   "You are a small, careful coding assistant.",
   "For greetings, explanations, and general questions, answer directly without tools.",
   "Use tools when the user asks you to inspect, create, modify, execute, or fetch something.",
+  "Use glob to find file paths and grep to search file contents before reading relevant files.",
   "For file changes, use edit_file so the user can review and approve a diff before it is written.",
   "When no tool is needed, put the answer in a JSON object with an 'answer' string.",
   "Use relative paths for project files.",
@@ -21,7 +23,7 @@ const SYSTEM_PROMPT = [
 
 function createTools(): ToolRegistry {
   const tools = new ToolRegistry();
-  for (const tool of [bashTool, readFileTool, editFileTool, webFetchTool]) tools.register(tool);
+  for (const tool of [bashTool, readFileTool, globTool, grepTool, editFileTool, webFetchTool]) tools.register(tool);
   return tools;
 }
 
