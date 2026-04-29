@@ -60,7 +60,7 @@ export class AgentRunner {
         if (!this.events.authorizeToolCall) {
           result = "Tool execution was denied because no authorization handler is configured.";
         } else if (!(await this.events.authorizeToolCall(call.name, call.arguments))) {
-          result = "The user denied permission. The command was not run.";
+          result = "The user denied permission. The tool was not run.";
         } else {
           this.events.onToolStart?.(call.name, call.arguments);
           result = await this.tools.execute(call.name, input);
