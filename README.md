@@ -20,6 +20,23 @@ bun run src/main.ts
 
 ## Tools
 
-`glob` finds file paths and `grep` searches file contents; both use `rg` and respect `.gitignore`. `read` reads UTF-8 files inside the project directory. `edit_file` shows a diff and asks before changing a file. `bash` asks before running a command, stops it after 30 seconds, and caps captured output at 100 KB per stream. `webfetch` retrieves text from public HTTP and HTTPS hosts, follows at most three redirects, and caps each response at 200 KB. It blocks private or reserved network addresses, including after DNS lookup and redirects.
+`glob` finds file paths and `grep` searches file contents; both use `rg` and respect `.gitignore`. Install ripgrep to use them. `read` reads UTF-8 files inside the project directory. `edit_file` shows a diff and asks before changing a file. `bash` asks before running a command, stops it after 30 seconds, and caps captured output at 100 KB per stream. `webfetch` retrieves text from public HTTP and HTTPS hosts, follows at most three redirects, and caps each response at 200 KB. It blocks private or reserved network addresses, including after DNS lookup and redirects.
 
 Each request can use up to 20 model turns. Conversation history stays in memory and is cleared when the program exits.
+
+## Tool permissions
+
+Permissions default to allowing `read`, `glob`, `grep`, and `webfetch`, while asking before `edit_file` and `bash`. Override them in `coding-agent.json`:
+
+```json
+{
+  "permissions": {
+    "read": "ask",
+    "edit_file": "ask",
+    "bash": "ask",
+    "webfetch": "allow"
+  }
+}
+```
+
+Each tool accepts `allow`, `ask`, or `deny`. Unlisted tools use the defaults above; unknown tools are denied.
